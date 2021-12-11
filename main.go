@@ -1,8 +1,14 @@
 package main
 
-import "stupid-ddbs/internal"
+import (
+	"stupid-ddbs/internal/hdfs"
+	"stupid-ddbs/internal/redis"
+)
 
 func main() {
-	internal.MongoConnectTest()
-	//internal.LoadArticleData()
+
+	//mongo.LoadArticleDataFromLocal()
+	redis.RedisConnectTest()
+	hdfs.HDFSConnectTest()
+
 }
