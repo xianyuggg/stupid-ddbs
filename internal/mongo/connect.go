@@ -2,7 +2,6 @@ package mongo
 
 import (
 	"context"
-	"fmt"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"stupid-ddbs/logutil"
@@ -10,21 +9,23 @@ import (
 
 var DefaultDbName = "ProjectDB"
 
-func mongo_get_database() (*mongo.Database, error){
-	clientOptions := options.Client().ApplyURI("mongodb://localhost:27017")
+func mongoGetDatabase() (*mongo.Database, error){
+	clientOptions := options.Client().ApplyURI("mongodb://localhost:20053")
 
 	// Connect to MongoDB
 	if client, err := mongo.Connect(context.TODO(), clientOptions); err != nil {
+		log.Error(err)
 		return nil, err
 	} else {
 		return client.Database(DefaultDbName), nil
 	}
 }
-func mongo_close_database(db *mongo.Database) {
-	client := db.Client();
+func mongoCloseDatabase(db *mongo.Database) error{
+	client := db.Client()
 	if err := client.Disconnect(context.TODO()); err != nil {
-		panic(err)
+		return err
 	}
+	return nil
 }
 
 func MongoConnectTest() {
@@ -40,17 +41,16 @@ func MongoConnectTest() {
 	}()
 
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err)
 	}
 
 	// Check the connection
 	err = client.Ping(context.TODO(), nil)
 
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err)
 	}
-
-	fmt.Println("Connected to MongoDB!")
+	log.Info("connected")
 }
 
 

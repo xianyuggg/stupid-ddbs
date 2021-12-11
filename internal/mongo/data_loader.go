@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
-	"go.mongodb.org/mongo-driver/mongo"
 	"io"
 	"os"
 	"strings"
@@ -54,8 +53,8 @@ type UserDoc struct {
 	ObtainedCredits string `json:"obtainedCredits"`
 }
 
-func LoadArticleDataFromLocal(target string) []interface{}{
-	path := fmt.Sprintf("\"dataset/python-generate-3-sized-datasets_new/%v.dat\"", target)
+func LoadArticleDataFromLocal(target string) ([]interface{}, error){
+	path := fmt.Sprintf("./dataset/python-generate-3-sized-datasets_new/%v.dat", target)
 	file, err := os.Open(path)
 	if err != nil {
 		panic(err)
@@ -77,40 +76,32 @@ func LoadArticleDataFromLocal(target string) []interface{}{
 
 		if err != nil {
 			if err == io.EOF {
-				fmt.Println("File read ok!")
+				log.Info("file read ok")
 				break
 			} else {
-				fmt.Println("Read file error!", err)
-				return nil
+				log.Error("file read error")
+				return nil, err
 			}
 		}
 
 		if target == "article" {
-			var tmpArticle ArticleDoc
-			err := json.Unmarshal([]byte(line), &tmpArticle)
-			if err != nil {
-				log.Error(err)
-			}
-			result = append(result, tmpArticle)
-		} else if target == "article" {
-
+			var tmp ArticleDoc
+			err = json.Unmarshal([]byte(line), &tmp)
+			result = append(result, tmp)
+		} else if target == "read" {
+			var tmp ReadDoc
+			err = json.Unmarshal([]byte(line), &tmp)
+			result = append(result, tmp)
+		} else if target == "user" {
+			var tmp UserDoc
+			err = json.Unmarshal([]byte(line), &tmp)
+			result = append(result, tmp)
 		}
-
-
-		fmt.Println(line)
-		var result map[string]string
-		err = json.Unmarshal([]byte(line), &result)
 		if err != nil {
-			fmt.Println(err.Error())
+			log.Error(err)
+			return nil, err
 		}
-
-		fmt.Println(result)
 	}
-	return nil
+	return result, nil
 }
 
-func BulkLoadDataToMongo(db *mongo.Database, collectionName string, value interface{}) error{
-	//collection := db.Collection(collectionName)
-
-
-}
