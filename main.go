@@ -2,6 +2,7 @@ package main
 
 import (
 	"stupid-ddbs/internal/mongo"
+	"stupid-ddbs/internal/printer"
 )
 
 func main() {
@@ -10,7 +11,13 @@ func main() {
 	//	panic(err)
 	//}
 
-	mongo.ShardingSetup()
+	manager := mongo.GetManagerInstance()
+	res := manager.QueryData("article", []mongo.Cond{
+		{"id", mongo.OpCompGE, "a1000"},
+		{"id", mongo.OpCompLE, "a1003"},
+		//{"title", mongo.OpCompEQ, "title1002"},
+	})
+	printer.ResultPrinter("article", res)
 
 	//redis.RedisConnectTest()
 	//hdfs.HDFSConnectTest()

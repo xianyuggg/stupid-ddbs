@@ -16,12 +16,12 @@ func mongoGetDatabase(dbName string) (*mongo.Database, error){
 		log.Error(err)
 		return nil, err
 	} else {
+		log.Info("client get database", DefaultDbName)
 		if dbName == "" {
 			return client.Database(DefaultDbName), nil
 		} else {
 			return client.Database(dbName), nil
 		}
-
 	}
 }
 func mongoCloseDatabase(db *mongo.Database) error{
