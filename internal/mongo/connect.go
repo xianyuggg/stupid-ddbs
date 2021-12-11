@@ -9,15 +9,19 @@ import (
 
 var DefaultDbName = "ProjectDB"
 
-func mongoGetDatabase() (*mongo.Database, error){
+func mongoGetDatabase(dbName string) (*mongo.Database, error){
 	clientOptions := options.Client().ApplyURI("mongodb://localhost:20053")
-
 	// Connect to MongoDB
 	if client, err := mongo.Connect(context.TODO(), clientOptions); err != nil {
 		log.Error(err)
 		return nil, err
 	} else {
-		return client.Database(DefaultDbName), nil
+		if dbName == "" {
+			return client.Database(DefaultDbName), nil
+		} else {
+			return client.Database(dbName), nil
+		}
+
 	}
 }
 func mongoCloseDatabase(db *mongo.Database) error{

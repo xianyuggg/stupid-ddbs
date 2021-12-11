@@ -6,9 +6,11 @@ import (
 
 func main() {
 
-	if err := mongo.LoadAllDataToMongo(); err != nil {
-		panic(err)
-	}
+	//if err := mongo.LoadAllData(); err != nil {
+	//	panic(err)
+	//}
+
+	mongo.ShardingSetup()
 
 	//redis.RedisConnectTest()
 	//hdfs.HDFSConnectTest()
