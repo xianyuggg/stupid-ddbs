@@ -5,18 +5,23 @@ import (
 	"fmt"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"log"
+	"stupid-ddbs/logutil"
 )
 
-func mongo_get_client() (*mongo.Client, error){
+var DefaultDbName = "ProjectDB"
+
+func mongo_get_database() (*mongo.Database, error){
 	clientOptions := options.Client().ApplyURI("mongodb://localhost:27017")
 
 	// Connect to MongoDB
-	client, err := mongo.Connect(context.TODO(), clientOptions)
-
-	return client, err
+	if client, err := mongo.Connect(context.TODO(), clientOptions); err != nil {
+		return nil, err
+	} else {
+		return client.Database(DefaultDbName), nil
+	}
 }
-func mongo_close_client(client *mongo.Client) {
+func mongo_close_database(db *mongo.Database) {
+	client := db.Client();
 	if err := client.Disconnect(context.TODO()); err != nil {
 		panic(err)
 	}
