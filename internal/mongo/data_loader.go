@@ -53,7 +53,22 @@ type UserDoc struct {
 	ObtainedCredits string `json:"obtainedCredits"`
 }
 
-func LoadArticleDataFromLocal(target string) ([]interface{}, error){
+//id, timestamp, aid, readNum, readUidList, commentNum, commentUidList, agreeNum, agreeUidList, shareNum, shareUidList
+//since it involves computing, use some int here
+type BereadDoc struct {
+	Aid 			string `bson:"aid,omitempty"`
+	Timestamp 		int `bson:"timestamp,omitempty"`
+	ReadNum			int `bson:"readNum,omitempty"`
+	ReadUidList		[]string `bson:"readUidList,omitempty"`
+	CommentNum		int `bson:"commentNum,omitempty"`
+	CommentUidList	[]string `bson:"commentUidList,omitempty"`
+	AgreeNum		int `bson:"agreeNum,omitempty"`
+	AgreeUidList	[]string `bson:"agreeUidList,omitempty"`
+	ShareNum		int `bson:"shareNum,omitempty"`
+	ShareUidList	[]string `bson:"shareUidList,omitempty"`
+}
+
+func LoadCollectionFromLocal(target string) ([]interface{}, error){
 	path := fmt.Sprintf("./dataset/python-generate-3-sized-datasets_new/%v.dat", target)
 	file, err := os.Open(path)
 	if err != nil {

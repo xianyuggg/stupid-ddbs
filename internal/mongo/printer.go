@@ -1,25 +1,24 @@
-package printer
+package mongo
 
 import (
 	"github.com/olekukonko/tablewriter"
 	"os"
-	"stupid-ddbs/internal/mongo"
 )
 
-type ArticleDoc struct {
-	Id          string `json:"id"`
-	Timestamp   string `json:"timestamp"`
-	Aid         string `json:"aid"`
-	Title       string `json:"title"`
-	Category    string `json:"category"`
-	Abstract    string `json:"abstract"`
-	ArticleTags string `json:"articleTags"`
-	Authors     string `json:"authors"`
-	Language    string `json:"language"`
-	Text        string `json:"text"`
-	Image       string `json:"image"`
-	Video       string `json:"video"`
-}
+//type ArticleDoc struct {
+//	Id          string `json:"id"`
+//	Timestamp   string `json:"timestamp"`
+//	Aid         string `json:"aid"`
+//	Title       string `json:"title"`
+//	Category    string `json:"category"`
+//	Abstract    string `json:"abstract"`
+//	ArticleTags string `json:"articleTags"`
+//	Authors     string `json:"authors"`
+//	Language    string `json:"language"`
+//	Text        string `json:"text"`
+//	Image       string `json:"image"`
+//	Video       string `json:"video"`
+//}
 //type ReadDoc struct {
 //	Timestamp      string `json:"timestamp"`
 //	Id             string `json:"id"`
@@ -54,7 +53,7 @@ func ResultPrinter(collectionName string, res []interface{}) {
 	if collectionName == "article" {
 		table.SetHeader([]string{"id", "timestamp", "aid", "title", "category", "abstract", "articleTags", "authors", "language", "text", "image", "video"})
 		for _, v := range res {
-			tmp := v.(mongo.ArticleDoc)
+			tmp := v.(ArticleDoc)
 			row := make([]string, 0)
 			row = append(row, tmp.Id)
 			row = append(row, tmp.Timestamp)
@@ -71,5 +70,34 @@ func ResultPrinter(collectionName string, res []interface{}) {
 			table.Append(row)
 		}
 		table.Render()
+	} else if collectionName == "read" {
+		table.SetHeader([]string{"timestamp", "id", "uid", "aid", "readTimeLength", "agreeOrNot", "commentOrNot", "shareOrNot", "commentDetail"})
+		for _, v := range res {
+			tmp := v.(ReadDoc)
+			row := make([]string, 0)
+			row = append(row, tmp.Id)
+			row = append(row, tmp.Timestamp)
+			row = append(row, tmp.Uid)
+			row = append(row, tmp.Aid)
+			row = append(row, tmp.ReadTimeLength)
+			row = append(row, tmp.AgreeOrNot)
+			row = append(row, tmp.CommentOrNot)
+			row = append(row, tmp.ShareOrNot)
+			row = append(row, tmp.CommentDetail)
+			table.Append(row)
+		}
+		table.Render()
 	}
 }
+
+//type ReadDoc struct {
+//	Timestamp      string `json:"timestamp"`
+//	Id             string `json:"id"`
+//	Uid            string `json:"uid"`
+//	Aid            string `json:"aid"`
+//	ReadTimeLength string `json:"readTimeLength"`
+//	AgreeOrNot     string `json:"agreeOrNot"`
+//	CommentOrNot   string `json:"commentOrNot"`
+//	ShareOrNot     string `json:"shareOrNot"`
+//	CommentDetail  string `json:"commentDetail"`
+//}

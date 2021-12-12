@@ -2,10 +2,13 @@ package mongo
 
 import (
 	"context"
+	"fmt"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
+	"strconv"
 	"stupid-ddbs/logutil"
 	"sync"
+	"time"
 )
 
 type Manager struct {
@@ -33,9 +36,9 @@ func (m* Manager) Close() {
 
 
 func (m* Manager) LoadAllData() error{
-	articles, _ := LoadArticleDataFromLocal("article")
-	reads, _ := LoadArticleDataFromLocal("read")
-	users, _ := LoadArticleDataFromLocal("user")
+	articles, _ := LoadCollectionFromLocal("article")
+	reads, _ := LoadCollectionFromLocal("read")
+	users, _ := LoadCollectionFromLocal("user")
 
 	_ = bulkLoadDataToMongo(m.db, "article", articles)
 	_ = bulkLoadDataToMongo(m.db, "read", reads)
@@ -133,4 +136,182 @@ func (m* Manager) QueryData(collectionName string, andConditions []Cond) []inter
 	}
 
 	return result
+}
+
+func (m* Manager) ComputeBeRead(overwrite bool) error{
+	articleCollection := m.db.Collection("article")
+
+	//lookupStage := bson.D{
+	//	{"$lookup",
+	//		bson.D{
+	//			{"from", "read"},
+	//			{"as", "tmp"},
+	//			{"pipeline", bson.A{
+	//				bson.D{{"$limit", 20000}},
+	//			}},
+	//			},
+	//		},
+	//}
+	//boolTmp := true
+	//opt := options.AggregateOptions{
+	//	AllowDiskUse: &boolTmp,
+	//}
+	projectStage := bson.D{
+		{
+			"$project",
+			bson.D{
+				{"_id", 0},
+				{"aid", 1},
+				{"timestamp", 1},
+			},
+		},
+	}
+	cursor, err := articleCollection.Aggregate(context.TODO(), mongo.Pipeline{projectStage})
+	if err != nil {
+		log.Error(err)
+	}
+	var tmpArt ArticleDoc
+
+	bereadId := 0
+	//jsonSchema := bson.M{
+	//	"bsonType": "object",
+	//	"required": []string{"aid", "timestamp", "readNum", "readUidList", "commentNum", "commentUidList", "agreeNum", "agreeUidList", "shareNum", "shareUidList"},
+	//	"properties": bson.M{
+	//		"aid": bson.M{
+	//			"bsonType": "string",
+	//		},
+	//		"timestamp": bson.M{
+	//			"bsonType": "int",
+	//		},
+	//		"readNum": bson.M{
+	//			"bsonType": "int",
+	//		},
+	//		"readUidList": bson.M{
+	//			"bsonType": "array",
+	//		},
+	//		"commentNum": bson.M{
+	//			"bsonType": "int",
+	//		},
+	//		"commentUidList": bson.M{
+	//			"bsonType": "array",
+	//		},
+	//		"agreeNum": bson.M{
+	//			"bsonType": "int",
+	//		},
+	//		"agreeUidList": bson.M{
+	//			"bsonType": "array",
+	//		},
+	//		"shareNum": bson.M{
+	//			"bsonType": "int",
+	//		},
+	//		"shareUidList": bson.M{
+	//			"bsonType": "array",
+	//		},
+	//	},
+	//}
+	//validator := bson.M{
+	//	"$jsonSchema": jsonSchema,
+	//}
+	//opts := options.CreateCollection().SetValidator(validator)
+	if err := m.db.CreateCollection(context.TODO(), "beread", nil); err != nil {
+		log.Warning(err)
+
+	}
+	bereadCollection := m.db.Collection("beread")
+
+	if overwrite {
+		_, _ = bereadCollection.DeleteMany(context.TODO(), bson.D{})
+		log.Info("overwrite and delete all")
+	} else {
+		num, _ := bereadCollection.CountDocuments(context.TODO(), bson.M{})
+		if num > 0 {
+			log.Info("document exists, not overwrite and return")
+			return nil
+		}
+		log.Info("no documents, continue computing")
+	}
+
+	for cursor.Next(context.TODO()) {
+		err := cursor.Decode(&tmpArt)
+		if err != nil {
+			log.Error(err)
+			break
+		}
+		//fmt.Println(tmpArt)
+		res := m.QueryData("read", []Cond{{"aid", OpCompEQ, tmpArt.Aid}})
+		//ResultPrinter("read", res)
+		tsp, _ := strconv.Atoi(tmpArt.Timestamp)
+
+		tmpBeread := BereadDoc{
+			Aid:            tmpArt.Aid,
+			Timestamp:      tsp,
+			ReadNum:        0,
+			ReadUidList:    make([]string, 0),
+			CommentNum:     0,
+			CommentUidList: make([]string, 0),
+			AgreeNum:       0,
+			AgreeUidList:   make([]string, 0),
+			ShareNum:       0,
+			ShareUidList:   make([]string, 0),
+		}
+		for _, read := range res {
+			tmpRead := read.(ReadDoc)
+			tmpBeread.ReadNum += 1
+			tmpBeread.ReadUidList = append(tmpBeread.ReadUidList, tmpRead.Uid)
+			if tmpRead.CommentOrNot == "1" {
+				tmpBeread.CommentNum += 1
+				tmpBeread.CommentUidList = append(tmpBeread.CommentUidList, tmpRead.Uid)
+			}
+			if tmpRead.AgreeOrNot == "1" {
+				tmpBeread.AgreeNum += 1
+				tmpBeread.AgreeUidList = append(tmpBeread.AgreeUidList, tmpRead.Uid)
+			}
+			if tmpRead.ShareOrNot == "1" {
+				tmpBeread.ShareNum += 1
+				tmpBeread.ShareUidList = append(tmpBeread.ShareUidList, tmpRead.Uid)
+			}
+		}
+		//tmpBeread.ReadNum = fmt.Sprintf("%v", readNum)
+		//tmpBeread.CommentNum = fmt.Sprintf("%v", commentNum)
+		//tmpBeread.AgreeNum = fmt.Sprintf("%v", agreeNum)
+		//tmpBeread.ShareNum = fmt.Sprintf("%v", shareNum)
+		//fmt.Println(tmpBeread)
+		bereadId += 1
+
+		if res, err := bereadCollection.InsertOne(context.Background(), tmpBeread); err != nil {
+			log.Error(err)
+			return err
+		} else {
+			log.Info("insert", res)
+		}
+
+	}
+
+	return nil
+}
+
+func (m* Manager) QueryPopularRank() error {
+	// Query the top-5 daily/weekly/monthly popular articles with articles details (text, image, and video if existing)
+	// (involving the join of Be-Read table and Article table)
+	// TODO: timestamp to
+	bereadCollection := m.db.Collection("beread")
+	cursor, err := bereadCollection.Find(context.TODO(), bson.M{})
+
+	weekMap := make(map[int]int)
+	for cursor.Next(context.TODO()) {
+		var beread BereadDoc
+		if err = cursor.Decode(&beread); err == nil {
+			tsp := beread.Timestamp
+			unixTime := time.Unix(int64(tsp), 0)
+			_, week := unixTime.ISOWeek()
+			weekMap[week] = 1
+			unixTime.Day()
+			//fmt.Println(unixTime.Format("2006-1-2"))
+		} else {
+			log.Error(err)
+			return err
+		}
+	}
+	fmt.Println(weekMap)
+	return nil
 }
