@@ -2,7 +2,10 @@ package mongo
 
 import (
 	"github.com/olekukonko/tablewriter"
+	"github.com/qeesung/image2ascii/convert"
+	"math"
 	"os"
+	"stupid-ddbs/internal/hdfs"
 )
 
 //type ArticleDoc struct {
@@ -48,10 +51,14 @@ import (
 //	ObtainedCredits string `json:"obtainedCredits"`
 //}
 
-func ResultPrinter(collectionName string, res []interface{}) {
+func ResultPrinter(collectionName string, res []interface{}, detailDisplay bool) {
 	table := tablewriter.NewWriter(os.Stdout)
 	if collectionName == "article" {
-		table.SetHeader([]string{"id", "timestamp", "aid", "title", "category", "abstract", "articleTags", "authors", "language", "text", "image", "video"})
+
+		headers := []string{"id", "timestamp", "aid", "title", "category", "abstract", "articleTags", "authors", "language", "text", "image", "video", "imageShow", "content"}
+		table.SetHeader(headers)
+		//images := make([]string, 0)
+		contents := make([]string, 0)
 		for _, v := range res {
 			tmp := v.(ArticleDoc)
 			row := make([]string, 0)
@@ -67,9 +74,39 @@ func ResultPrinter(collectionName string, res []interface{}) {
 			row = append(row, tmp.Text)
 			row = append(row, tmp.Image)
 			row = append(row, tmp.Video)
+
+			// show image
+			if detailDisplay {
+				convertOptions := convert.DefaultOptions
+				convertOptions.FixedWidth = 20
+				convertOptions.FixedHeight = 20
+				convertOptions.Ratio = 1
+				convertOptions.Ratio = 1
+				convertOptions.FitScreen = false
+				image := hdfs.GetArticleImages(tmp.Aid)
+				converter := convert.NewImageConverter()
+				displayString := converter.Image2ASCIIString(image[0], &convertOptions)
+				row = append(row, displayString)
+
+				content := hdfs.GetArticleContent(tmp.Aid)
+				content = content[0: int(math.Min(300, float64(len(content))))]
+				contentProcess := ""
+				for i := 0; i < len(content); i+=20 {
+					contentProcess += content[i:i+20] + "\n"
+				}
+				row = append(row, contentProcess)
+				contents = append(contents, content)
+			} else {
+				row = append(row, "")
+				row = append(row, "")
+			}
+			//images = append(images, displayString)
 			table.Append(row)
 		}
 		table.Render()
+		//for _, img := range(images) {
+		//	fmt.Println(img)
+		//}
 	} else if collectionName == "read" {
 		table.SetHeader([]string{"timestamp", "id", "uid", "aid", "readTimeLength", "agreeOrNot", "commentOrNot", "shareOrNot", "commentDetail"})
 		for _, v := range res {

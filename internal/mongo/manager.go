@@ -47,7 +47,17 @@ func (m* Manager) LoadAllData() error{
 	return nil
 }
 
-func (m* Manager) QueryData(collectionName string, andConditions []Cond) []interface{}{
+func (m* Manager) CheckCollections(collectionName string) bool{
+	colls, _ := m.db.ListCollectionNames(context.TODO(), bson.D{})
+	retValue := false
+	for _, name := range colls {
+		if collectionName == name {
+			retValue = true
+		}
+	}
+	return retValue
+}
+func (m* Manager) QueryData(collectionName string, andConditions []Cond) ([]interface{}, error){
 	coll := m.db.Collection(collectionName)
 	//db.col.find({"likes": {$gt:50}, $or: [{"by": "菜鸟教程"},{"title": "MongoDB 教程"}]}).pretty(
 	attrMapCond := make(map[string][]Cond)
@@ -135,7 +145,7 @@ func (m* Manager) QueryData(collectionName string, andConditions []Cond) []inter
 		}
 	}
 
-	return result
+	return result, err
 }
 
 func (m* Manager) ComputeBeRead(overwrite bool) error{
@@ -238,7 +248,7 @@ func (m* Manager) ComputeBeRead(overwrite bool) error{
 			break
 		}
 		//fmt.Println(tmpArt)
-		res := m.QueryData("read", []Cond{{"aid", OpCompEQ, tmpArt.Aid}})
+		res, _ := m.QueryData("read", []Cond{{"aid", OpCompEQ, tmpArt.Aid}})
 		//ResultPrinter("read", res)
 		tsp, _ := strconv.Atoi(tmpArt.Timestamp)
 

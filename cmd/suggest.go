@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"github.com/c-bata/go-prompt"
-	"strings"
 )
 
 var startSuggests = []prompt.Suggest{
@@ -212,23 +211,24 @@ func solveMultiStepSuggests(
 	return prompt.FilterHasPrefix(suggests, in.GetWordBeforeCursor(), true)
 }
 
-func Completer(in prompt.Document) []prompt.Suggest {
-	check := func(c rune) bool {
-		return c == ' ' || c == '\n' || c == ';'
-	}
-
-	suffix := strings.ToLower(in.CurrentLine())
-
-	fields := strings.FieldsFunc(suffix, check)
-
-	if len(fields) > 0 && !check(rune(suffix[len(suffix)-1])) {
-		fields = fields[0 : len(fields)-1]
-	}
-
-	if len(fields) == 0 {
-		return prompt.FilterHasPrefix(startSuggests, in.GetWordBeforeCursor(), true)
-	}
-
-	return solveMultiStepSuggests(in, fields[0], fields)
+func completer(in prompt.Document) []prompt.Suggest {
+	return nil
+	//check := func(c rune) bool {
+	//	return c == ' ' || c == '\n' || c == ';'
+	//}
+	//
+	//suffix := strings.ToLower(in.CurrentLine())
+	//
+	//fields := strings.FieldsFunc(suffix, check)
+	//
+	//if len(fields) > 0 && !check(rune(suffix[len(suffix)-1])) {
+	//	fields = fields[0 : len(fields)-1]
+	//}
+	//
+	//if len(fields) == 0 {
+	//	return prompt.FilterHasPrefix(startSuggests, in.GetWordBeforeCursor(), true)
+	//}
+	//
+	//return solveMultiStepSuggests(in, fields[0], fields)
 }
 

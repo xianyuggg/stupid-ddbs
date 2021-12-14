@@ -3,41 +3,102 @@ package cmd
 import (
 	"os"
 	"strings"
+	"stupid-ddbs/internal/mongo"
 )
 
-var LivePrefixState struct {
+var livePrefixState struct {
 	LivePrefix string
 	IsEnable   bool
 }
 
 var query string = ""
 
-var History []string = make([]string, 0)
+var history []string = make([]string, 0)
 
-func Executor(in string) {
+func executor(in string) {
 	sql := strings.Trim(query+in, " \n;")
 	if strings.HasSuffix(in, ";") || sql == "" {
 		query += in
-		LivePrefixState.IsEnable = false
-		LivePrefixState.LivePrefix = in
-
+		livePrefixState.IsEnable = false
+		livePrefixState.LivePrefix = in
 		solve(sql)
-
-		History = append(History, query)
+		history = append(history, query)
 		query = ""
 		return
 	}
 	query += in + " "
-	LivePrefixState.LivePrefix = "... "
-	LivePrefixState.IsEnable = true
+	livePrefixState.LivePrefix = "... "
+	livePrefixState.IsEnable = true
 }
 
-func ChangeLivePrefix() (string, bool) {
-	return LivePrefixState.LivePrefix, LivePrefixState.IsEnable
+func changeLivePrefix() (string, bool) {
+	return livePrefixState.LivePrefix, livePrefixState.IsEnable
 }
 
-func solve(sqls string) {
-	if sqls == "exit" {
+// TODO: set global parameters
+var displayDetails bool
+
+func solve(query string) {
+	if len(query) == 0 {
+		return
+	}
+	commands := strings.Split(query, " ")
+	switch commands[0] {
+	case "exit":
 		os.Exit(0)
+	case "set":
+		if len(commands) % 3 != 0 {
+			println("set <attribute> value (display_details)")
+			return
+		}
+		switch commands[1] {
+		case "display_details":
+			if commands[2] != "true" && commands[2] != "false" {
+				println("value not valid (true/false)")
+			}
+			if commands[2] == "true" {
+				displayDetails = true
+			} else {
+				displayDetails = false
+			}
+		default:
+			println("attribute do not exist")
+		}
+	case "query":
+		if (len(commands) - 2) % 3 != 0 {
+			println("query <collection> {<attr> <lt> <value>}")
+			return
+		}
+		collection := commands[1]
+		conds := make([]mongo.Cond, 0)
+		for i := 2; i < len(commands) - 2; i += 3 {
+			attr := commands[i]
+			op := mongo.OpCompGT
+			switch commands[i+1] {
+			case "eq":
+				op = mongo.OpCompEQ
+			case "lt":
+				op = mongo.OpCompLT
+			case "le":
+				op = mongo.OpCompLE
+			case "gt":
+				op = mongo.OpCompGT
+			case "ge":
+				op = mongo.OpCompGE
+			case "ne":
+				op = mongo.OpCompNE
+			default:
+				println("unsupported op type")
+				return
+			}
+			conds = append(conds, mongo.Cond{
+				Field: attr,
+				Op:    op,
+				Val:   commands[i+2],
+			})
+		}
+		mongo.QueryData(collection, conds, displayDetails)
+	default:
+		println("unknown command")
 	}
 }
