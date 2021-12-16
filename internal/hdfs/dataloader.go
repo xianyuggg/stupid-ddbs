@@ -137,8 +137,9 @@ func (m* Manager) loadImageDataIntoHDFS() {
 	}
 }
 
-func (m* Manager) LoadDataIntoHDFS() {
-	for begin := 1000; begin <= 9500; begin += 500 {
+func LoadDataIntoHDFS() {
+	m := GetManagerInstance()
+	for begin := 0; begin <= 9500; begin += 500 {
 		m.loadArticleDataIntoHDFS(begin, begin + 500)
 	}
 	m.loadImageDataIntoHDFS()

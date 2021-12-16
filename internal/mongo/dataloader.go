@@ -68,7 +68,7 @@ type BereadDoc struct {
 	ShareUidList	[]string `bson:"shareUidList,omitempty"`
 }
 
-func LoadCollectionFromLocal(target string) ([]interface{}, error){
+func loadCollectionFromLocal(target string) ([]interface{}, error){
 	path := fmt.Sprintf("./dataset/python-generate-3-sized-datasets_new/%v.dat", target)
 	file, err := os.Open(path)
 	if err != nil {

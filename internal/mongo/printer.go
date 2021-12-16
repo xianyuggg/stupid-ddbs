@@ -51,7 +51,7 @@ import (
 //	ObtainedCredits string `json:"obtainedCredits"`
 //}
 
-func ResultPrinter(collectionName string, res []interface{}, detailDisplay bool) {
+func CollectionPrinter(collectionName string, res []interface{}, detailDisplay bool) {
 	table := tablewriter.NewWriter(os.Stdout)
 	if collectionName == "article" {
 
@@ -125,6 +125,27 @@ func ResultPrinter(collectionName string, res []interface{}, detailDisplay bool)
 		}
 		table.Render()
 	}
+}
+
+func ResultPrinter(header []string, row[][]string) {
+	table := tablewriter.NewWriter(os.Stdout)
+
+	table.SetHeader(header)
+	table.SetCenterSeparator("")
+	table.SetColumnSeparator("")
+	table.SetRowSeparator("")
+	table.SetAutoFormatHeaders(true)
+	table.SetHeaderAlignment(tablewriter.ALIGN_LEFT)
+	table.SetAlignment(tablewriter.ALIGN_LEFT)
+	table.SetHeaderLine(false)
+	table.SetBorder(false)
+	table.SetTablePadding("\t") // pad with tabs
+
+	//table.SetHeader(header)
+	//table.SetHeaderAlignment(tablewriter.ALIGN_LEFT)
+	//table.SetAlignment(tablewriter.ALIGN_LEFT)
+	table.AppendBulk(row)
+	table.Render()
 }
 
 //type ReadDoc struct {

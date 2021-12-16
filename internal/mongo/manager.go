@@ -36,9 +36,9 @@ func (m* Manager) Close() {
 
 
 func (m* Manager) LoadAllData() error{
-	articles, _ := LoadCollectionFromLocal("article")
-	reads, _ := LoadCollectionFromLocal("read")
-	users, _ := LoadCollectionFromLocal("user")
+	articles, _ := loadCollectionFromLocal("article")
+	reads, _ := loadCollectionFromLocal("read")
+	users, _ := loadCollectionFromLocal("user")
 
 	_ = bulkLoadDataToMongo(m.db, "article", articles)
 	_ = bulkLoadDataToMongo(m.db, "read", reads)
@@ -249,7 +249,7 @@ func (m* Manager) ComputeBeRead(overwrite bool) error{
 		}
 		//fmt.Println(tmpArt)
 		res, _ := m.QueryData("read", []Cond{{"aid", OpCompEQ, tmpArt.Aid}})
-		//ResultPrinter("read", res)
+		//CollectionPrinter("read", res)
 		tsp, _ := strconv.Atoi(tmpArt.Timestamp)
 
 		tmpBeread := BereadDoc{

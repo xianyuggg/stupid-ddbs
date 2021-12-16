@@ -38,3 +38,18 @@ func GetArticleImages(aid string) []image.Image {
 	}
 	return retImages
 }
+
+
+func GetPathInfo(path string) ([]gowfs.FileStatus, error){
+	if path == "" {
+		path = "/"
+	}
+	m := GetManagerInstance()
+	return m.client.ListStatus(gowfs.Path{Name: path})
+	//if err != nil {
+	//	return nil, err
+	//}
+	//for _, file := range fileStatusArr {
+	//	file.BlockSize
+	//}
+}

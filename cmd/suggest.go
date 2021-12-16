@@ -2,48 +2,33 @@ package cmd
 
 import (
 	"github.com/c-bata/go-prompt"
+	"strings"
 )
 
 var startSuggests = []prompt.Suggest{
 	{
-		Text:        "use",
-		Description: "to entry a database",
+		Text:        "set",
+		Description: "set display_details/sharding true/false",
 	},
 	{
-		Text:        "create",
-		Description: "to create a database, a table or an index",
+		Text:        "ping",
+		Description: "to check database connection",
 	},
 	{
-		Text:        "drop",
-		Description: "to drop a database, a table or an index",
+		Text:        "query",
+		Description: "to query a collection using a set of attribute",
 	},
 	{
 		Text:        "show",
-		Description: "to show databases or tables",
+		Description: "to show hdfs/collections/shards",
 	},
 	{
-		Text:        "desc",
-		Description: "to describe a table or foreign keys",
+		Text:        "load",
+		Description: "to load collection",
 	},
 	{
-		Text:        "alter",
-		Description: "to alter a table",
-	},
-	{
-		Text:        "insert",
-		Description: "to insert rows into tables",
-	},
-	{
-		Text:        "delete",
-		Description: "to delete rows from tables",
-	},
-	{
-		Text:        "update",
-		Description: "to update rows in tables",
-	},
-	{
-		Text:        "select",
-		Description: "to query data in tables",
+		Text:        "drop",
+		Description: "to drop collection",
 	},
 	{
 		Text:        "exit",
@@ -51,127 +36,41 @@ var startSuggests = []prompt.Suggest{
 	},
 }
 
-var fieldSuggests = []prompt.Suggest{
-	{Text: "int"},
-	{Text: "varchar"},
-	{Text: "date"},
-	{Text: "float"},
-	{Text: "not"},
-	{Text: "null"},
-	{Text: "default"},
-	{Text: "primary"},
-	{Text: "foreign"},
-	{Text: "key"},
-	{Text: "references"},
-}
 
 var multiStepSuggests = map[string][]prompt.Suggest{
-	"desc": {
-		{Text: "fk"},
+	"ping": {
 	},
-
-	"create": {
-		{Text: "database"},
-		{Text: "table"},
-		{Text: "index"},
+	"load": {
+		{Text: "local"},
+		{Text: "article"},
+		{Text: "read"},
+		{Text: "user"},
+		{Text: "beread"},
+		{Text: "popular"},
 	},
-	"create.index": {
-		{Text: "on"},
-	},
-
 	"drop": {
-		{Text: "database"},
-		{Text: "table"},
-		{Text: "index"},
+		{Text: "all"},
+		{Text: "article"},
+		{Text: "read"},
+		{Text: "user"},
+		{Text: "beread"},
+		{Text: "popular"},
 	},
-
 	"show": {
-		{Text: "databases"},
-		{Text: "tables"},
+		{Text: "hdfs"},
+		{Text: "collections"},
+		{Text: "shards"},
 	},
-
-	"insert": {
-		{Text: "into"},
+	"set": {
+		{Text: "display_details"},
+		{Text: "sharding"},
 	},
-	"insert.into": {
-		{Text: "values"},
+	"query": {
+		{Text: "article"},
+		{Text: "user"},
+		{Text: "read"},
+		{Text: "beread"},
 	},
-
-	"delete": {
-		{Text: "from"},
-	},
-	"delete.from": {
-		{Text: "where"},
-	},
-
-	"update": {
-		{Text: "set"},
-	},
-	"update.set": {
-		{Text: "where"},
-	},
-
-	"select": {
-		{Text: "from"},
-	},
-	"select.from": {
-		{Text: "where"},
-	},
-
-	"alter": {
-		{Text: "table"},
-	},
-	"alter.table": {
-		{Text: "add"},
-		{Text: "drop"},
-		{Text: "change"},
-		{Text: "rename"},
-	},
-	"alter.table.rename": {
-		{Text: "to"},
-	},
-	"alter.table.drop": {
-		{Text: "index"},
-		{Text: "primary"},
-		{Text: "foreign"},
-	},
-	"alter.table.drop.primary": {
-		{Text: "key"},
-	},
-	"alter.table.drop.foreign": {
-		{Text: "key"},
-	},
-	"alter.table.add": {
-		{Text: "index"},
-		{Text: "primary"},
-		{Text: "foreign"},
-		{Text: "constraint"},
-	},
-	"alter.table.add.primary": {
-		{Text: "key"},
-	},
-	"alter.table.add.foreign": {
-		{Text: "key"},
-	},
-	"alter.table.add.foreign.key": {
-		{Text: "references"},
-	},
-	"alter.table.add.constraint": {
-		{Text: "primary"},
-		{Text: "foreign"},
-	},
-	"alter.table.add.constraint.primary": {
-		{Text: "key"},
-	},
-	"alter.table.add.constraint.foreign": {
-		{Text: "key"},
-	},
-	"alter.table.add.constraint.foreign.key": {
-		{Text: "references"},
-	},
-
-	"create.table":       nil,
-	"alter.table.change": nil,
 }
 
 func solveMultiStepSuggests(
@@ -183,52 +82,36 @@ func solveMultiStepSuggests(
 	if !found {
 		prompt.FilterHasPrefix([]prompt.Suggest{}, in.GetWordBeforeCursor(), true)
 	}
-	if suggests == nil {
-		return prompt.FilterHasPrefix(fieldSuggests, in.GetWordBeforeCursor(), true)
-	}
-
+	//
 	for _, text := range fields {
 		for _, suggest := range suggests {
 			if text == suggest.Text {
 				now = now + "." + text
 				suggests, found = multiStepSuggests[now]
-				if !found {
-					prompt.FilterHasPrefix([]prompt.Suggest{}, in.GetWordBeforeCursor(), true)
-				}
-				if suggests == nil {
-					return prompt.FilterHasPrefix(fieldSuggests, in.GetWordBeforeCursor(), true)
-				}
+				prompt.FilterHasPrefix([]prompt.Suggest{}, in.GetWordBeforeCursor(), true)
 			}
-		}
-	}
-
-	// special
-	if now == "alter.table.add" {
-		if fields[len(fields)-1] != "add" {
-			return prompt.FilterHasPrefix(fieldSuggests, in.GetWordBeforeCursor(), true)
 		}
 	}
 	return prompt.FilterHasPrefix(suggests, in.GetWordBeforeCursor(), true)
 }
 
 func completer(in prompt.Document) []prompt.Suggest {
-	return nil
-	//check := func(c rune) bool {
-	//	return c == ' ' || c == '\n' || c == ';'
-	//}
-	//
-	//suffix := strings.ToLower(in.CurrentLine())
-	//
-	//fields := strings.FieldsFunc(suffix, check)
-	//
-	//if len(fields) > 0 && !check(rune(suffix[len(suffix)-1])) {
-	//	fields = fields[0 : len(fields)-1]
-	//}
-	//
-	//if len(fields) == 0 {
-	//	return prompt.FilterHasPrefix(startSuggests, in.GetWordBeforeCursor(), true)
-	//}
-	//
-	//return solveMultiStepSuggests(in, fields[0], fields)
+	check := func(c rune) bool {
+		return c == ' ' || c == '\n' || c == ';'
+	}
+
+	suffix := strings.ToLower(in.CurrentLine())
+
+	fields := strings.FieldsFunc(suffix, check)
+
+	if len(fields) > 0 && !check(rune(suffix[len(suffix)-1])) {
+		fields = fields[0 : len(fields)-1]
+	}
+
+	if len(fields) == 0 {
+		return prompt.FilterHasPrefix(startSuggests, in.GetWordBeforeCursor(), true)
+	}
+
+	return solveMultiStepSuggests(in, fields[0], fields)
 }
 

@@ -3,7 +3,9 @@ package cmd
 import (
 	"os"
 	"strings"
+	"stupid-ddbs/internal/hdfs"
 	"stupid-ddbs/internal/mongo"
+	"stupid-ddbs/internal/moniter"
 )
 
 var livePrefixState struct {
@@ -46,6 +48,56 @@ func solve(query string) {
 	switch commands[0] {
 	case "exit":
 		os.Exit(0)
+	case "ping":
+		if len(commands) != 1 {
+			println("ping with no arguments")
+			return
+		}
+		hdfs.HDFSConnectTest()
+		mongo.MongoConnectTest()
+	case "load":
+		if len(commands) != 2 {
+			println("load hdfs/local/beread/popular/...")
+		} else {
+			if commands[1] == "hdfs" {
+				hdfs.LoadDataIntoHDFS()
+			} else {
+				mongo.LoadData(commands[1])
+			}
+		}
+	case "drop":
+		if len(commands) != 2 {
+			println("drop all/beread/popular/...")
+		} else {
+			mongo.LoadData(commands[1])
+		}
+	case "show":
+		switch commands[1] {
+		case "shards":
+			if len(commands) == 2 {
+				moniter.PrintShards()
+			} else {
+				println("show shards")
+			}
+		case "collections":
+			if len(commands) == 2 {
+				moniter.PrintAllCollectionsStats()
+			} else {
+				println("show collections")
+			}
+		case "hdfs":
+			if len(commands) == 2 {
+				moniter.ShowHdfsPathStatus("/")
+				return
+			}
+			if len(commands) == 3 {
+				moniter.ShowHdfsPathStatus(commands[2])
+				return
+			}
+			println("show hdfs <path>")
+		default:
+			println("item not valid")
+		}
 	case "set":
 		if len(commands) % 3 != 0 {
 			println("set <attribute> value (display_details)")
@@ -60,6 +112,13 @@ func solve(query string) {
 				displayDetails = true
 			} else {
 				displayDetails = false
+			}
+		case "sharding":
+			if commands[2] != "true" && commands[2] != "false" {
+				println("value not valid (true/false)")
+			}
+			if commands[2] == "true" {
+				mongo.ShardingSetup()
 			}
 		default:
 			println("attribute do not exist")

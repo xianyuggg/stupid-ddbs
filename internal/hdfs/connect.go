@@ -10,11 +10,10 @@ func HDFSConnectTest() {
 	config := gowfs.Configuration{Addr: "localhost:9870", User: "root"}
 	client, err := gowfs.NewFileSystem(config)
 	if err != nil {
-		panic(fmt.Sprintln("出现异常,异常信息为:", err))
+		panic(fmt.Sprintln("gowfs.NewFileSystem(config) err", err))
 	}
 
-	path := gowfs.Path{Name: "/test.txt"}
-
+	path := gowfs.Path{Name: "/test.json"}
 	/*
 		Create函数接收如下参数。
 		data:io.Reader,一个实现了io.Reader接口的struct
@@ -28,18 +27,18 @@ func HDFSConnectTest() {
 
 		返回一个bool和error
 	*/
-	if flag, err :=client.Create(
+	if _, err :=client.Create(
 		bytes.NewBufferString("this is first test"), //如果不指定内容，就直接bytes.NewBufferString()即可
 		path, //路径
-		false,//不覆盖
+		true,//不覆盖
 		0,
 		0,
 		0666,
 		0,
 	); err != nil {
-		fmt.Println("创建文件出错,错误为:", err)
+		fmt.Println("hdfs create test file error:", err)
 	} else {
-		fmt.Println("创建文件成功, flag =", flag)  //创建文件成功, flag = true
+		fmt.Println("hdfs create test file success")  //创建文件成功, flag = true
 	}
 
 

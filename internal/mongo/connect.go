@@ -33,8 +33,7 @@ func mongoCloseDatabase(db *mongo.Database) error{
 }
 
 func MongoConnectTest() {
-	clientOptions := options.Client().ApplyURI("mongodb://localhost:27017")
-
+	clientOptions := options.Client().ApplyURI("mongodb://localhost:20053")
 	// Connect to MongoDB
 	client, err := mongo.Connect(context.TODO(), clientOptions)
 
@@ -52,9 +51,10 @@ func MongoConnectTest() {
 	err = client.Ping(context.TODO(), nil)
 
 	if err != nil {
-		log.Error(err)
+		println(err.Error())
+	} else {
+		println("mongo connected")
 	}
-	log.Info("connected")
 }
 
 

@@ -5,6 +5,10 @@ import "stupid-ddbs/cmd"
 func main() {
 
 	cmd.Run()
+	//moniter.ShowHdfsPathStatus("/")
+	//moniter.PrintShards()
+	//moniter.PrintAllCollectionsStats()
+	//mongo.PrintDbStats()
 
 	//manager := mongo.GetManagerInstance()
 
