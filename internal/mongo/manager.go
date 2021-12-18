@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"strconv"
 	"stupid-ddbs/logutil"
 	"sync"
@@ -114,7 +115,7 @@ func (m* Manager) QueryData(collectionName string, andConditions []Cond) ([]inte
 		}
 	}
 
-	cursor, err := coll.Find(context.TODO(), condFinalBson)
+	cursor, err := coll.Find(context.TODO(), condFinalBson, &options.FindOptions{Collation: &CollationConfig})
 	if err != nil {
 		log.Error(err)
 	}
@@ -223,10 +224,7 @@ func (m* Manager) ComputeBeRead(overwrite bool) error{
 	//	"$jsonSchema": jsonSchema,
 	//}
 	//opts := options.CreateCollection().SetValidator(validator)
-	if err := m.db.CreateCollection(context.TODO(), "beread", nil); err != nil {
-		log.Warning(err)
 
-	}
 	bereadCollection := m.db.Collection("beread")
 
 	if overwrite {
@@ -300,10 +298,10 @@ func (m* Manager) ComputeBeRead(overwrite bool) error{
 	return nil
 }
 
+
 func (m* Manager) QueryPopularRank() error {
 	// Query the top-5 daily/weekly/monthly popular articles with articles details (text, image, and video if existing)
 	// (involving the join of Be-Read table and Article table)
-	// TODO: timestamp to
 	bereadCollection := m.db.Collection("beread")
 	cursor, err := bereadCollection.Find(context.TODO(), bson.M{})
 

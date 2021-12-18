@@ -1,0 +1,87 @@
+version: "3"
+services:
+  shard1_master:
+    container_name:
+      shard1_master
+    image: ubuntu:latest
+    ports:
+      - 20014:20014
+    network_mode:
+      "bridge"
+    volumes:
+      - /Users/xianyu/Desktop/SourceCode/Database:/home/
+
+    command: tail -f /dev/null
+
+  shard1_slave:
+    container_name:
+      shard1_slave
+    image: ubuntu:latest
+    ports:
+      - 20015:20015
+    network_mode:
+      "bridge"
+    volumes:
+      - /Users/xianyu/Desktop/SourceCode/Database:/home/
+    command: tail -f /dev/null
+
+  shard2_master:
+    container_name:
+      shard2_master
+    image: ubuntu:latest
+    ports:
+      - 20024:20024
+    network_mode:
+      "bridge"
+    volumes:
+      - /Users/xianyu/Desktop/SourceCode/Database:/home/
+    command: tail -f /dev/null
+
+  shard2_slave:
+    container_name:
+      shard2_slave
+    image: ubuntu:latest
+    ports:
+      - 20025:20025
+    network_mode:
+      "bridge"
+    volumes:
+      - /Users/xianyu/Desktop/SourceCode/Database:/home/
+    command: tail -f /dev/null
+
+
+  config1:
+    container_name:
+      config1
+    image: ubuntu:latest
+    ports:
+      - 20043:20043
+    network_mode:
+      "bridge"
+    volumes:
+      - /Users/xianyu/Desktop/SourceCode/Database:/home/
+    command: tail -f /dev/null
+
+  mongos1:
+    container_name:
+      mongos1
+    image: ubuntu:latest
+    ports:
+      - 20053:20053
+    network_mode:
+      "bridge"
+    volumes:
+      - /Users/xianyu/Desktop/SourceCode/Database:/home/
+    command: tail -f /dev/null
+
+  hdfs:
+    container_name:
+      hdfs
+    image: ubuntu:latest
+    environment:
+      - HDFS_NAMENODE_USER=root
+      - HDFS_DATANODE_USER=root
+      - HDFS_SECONDARYNAMENODE_USER=root
+    ports:
+      - 9870:9870
+    command: tail -f /dev/null

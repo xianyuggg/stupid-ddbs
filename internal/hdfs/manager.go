@@ -17,7 +17,7 @@ func GetManagerInstance() *Manager {
 	once.Do(func() {
 		log.Info("hdfs manager starts to initialize.")
 		defer log.Info("hdfs manager has been initialized.")
-		config := gowfs.Configuration{Addr: "localhost:9870", User: "root"}
+		config := gowfs.Configuration{Addr: "127.0.0.1:9870", User: "root"}
 		client, err := gowfs.NewFileSystem(config)
 		if err != nil {
 			panic(err)

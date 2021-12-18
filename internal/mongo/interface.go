@@ -28,17 +28,19 @@ func QueryData(collectionName string, andConditions []Cond, showDetails bool) {
 */
 func LoadData(target string) {
 	m := GetManagerInstance()
-	collections := GetCollections()
-	collMap := make(map[string]int)
-	for _, coll := range collections {
-		collMap[coll] = 1
-	}
-	if _, ok := collMap[target]; ok {
-		println("target exists, plz drop fist")
-	}
-	if len(collections) != 0 && target == "local"{
-		println("collection exists, plz drop first")
-	}
+	//collections := GetCollections()
+	//collMap := make(map[string]int)
+	//for _, coll := range collections {
+	//	collMap[coll] = 1
+	//}
+	//if _, ok := collMap[target]; ok {
+	//	println("target exists, plz drop fist")
+	//	return
+	//}
+	//if len(collections) != 0 && target == "local"{
+	//	println("collection exists, plz drop first")
+	//	return
+	//}
 
 	switch target {
 	case "article":
@@ -138,7 +140,8 @@ func getWrappedValue(tmp string, wrappedType string) string{
 	var result map[string]interface{}
 	err := json.Unmarshal([]byte(tmp), &result)
 	if err != nil {
-		panic(err)
+		log.Warning(err)
+		return ""
 	}
 	if wrappedType == "int"{
 		return result["$numberInt"].(string)
@@ -199,6 +202,7 @@ func PrintCollectionStats(colls []string) {
 		}
 		bsonRaw, _ := res.DecodeBytes()
 
+
 		if fmt.Sprintf("%v", bsonRaw.Lookup("sharded")) == "false" {
 			row := make([]string, 0)
 
@@ -208,7 +212,7 @@ func PrintCollectionStats(colls []string) {
 
 			row = append(row, getWrappedValue(strings.Trim(fmt.Sprintf("%v", bsonRaw.Lookup("size")), "\""), "int"))
 			row = append(row, getWrappedValue(strings.Trim(fmt.Sprintf("%v", bsonRaw.Lookup("count")), "\""), "int"))
-			row = append(row, getWrappedValue(strings.Trim(fmt.Sprintf("%v", bsonRaw.Lookup("avgObjSize")), "\""), "int"))
+			row = append(row, getWrappedValue(strings.Trim(fmt.Sprintf("%v", bsonRaw.Lookup("avgObjSize")), "\""), "double"))
 			row = append(row, getWrappedValue(strings.Trim(fmt.Sprintf("%v", bsonRaw.Lookup("storageSize")), "\""), "int"))
 			rows = append(rows, row)
 		} else {
@@ -225,6 +229,7 @@ func PrintCollectionStats(colls []string) {
 			rows = append(rows, row)
 
 			shards, err := bsonRaw.Lookup("shards").Document().Elements()
+
 			if err != nil {
 				panic(err)
 			}

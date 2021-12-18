@@ -1,0 +1,7 @@
+sharding:
+  clusterRole: shardsvr
+replication:
+  replSetName: rs1
+net:
+  port: 27017
+  bindIp: 0.0.0.0

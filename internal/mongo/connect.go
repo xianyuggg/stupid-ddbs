@@ -10,7 +10,7 @@ import (
 var DefaultDbName = "ProjectDB"
 
 func mongoGetDatabase(dbName string) (*mongo.Database, error){
-	clientOptions := options.Client().ApplyURI("mongodb://localhost:20053")
+	clientOptions := options.Client().ApplyURI("mongodb://localhost:27017")
 	// Connect to MongoDB
 	if client, err := mongo.Connect(context.TODO(), clientOptions); err != nil {
 		log.Error(err)
@@ -33,7 +33,7 @@ func mongoCloseDatabase(db *mongo.Database) error{
 }
 
 func MongoConnectTest() {
-	clientOptions := options.Client().ApplyURI("mongodb://localhost:20053")
+	clientOptions := options.Client().ApplyURI("mongodb://localhost:27017")
 	// Connect to MongoDB
 	client, err := mongo.Connect(context.TODO(), clientOptions)
 

@@ -117,6 +117,7 @@ func (m* Manager) loadArticleDataIntoHDFS(begin int, end int)  {
 			reader := bytes.NewReader(content)
 			if _, err := m.client.Create(reader, gowfs.Path{Name: tmpPath}, true, 0, 0, 0666, 0); err != nil {
 				log.Error(err)
+				return
 			}
 			log.Infof("create %v success", tmpPath)
 		}
@@ -139,7 +140,7 @@ func (m* Manager) loadImageDataIntoHDFS() {
 
 func LoadDataIntoHDFS() {
 	m := GetManagerInstance()
-	for begin := 0; begin <= 9500; begin += 500 {
+	for begin := 0; begin <= 2000; begin += 500 {
 		m.loadArticleDataIntoHDFS(begin, begin + 500)
 	}
 	m.loadImageDataIntoHDFS()

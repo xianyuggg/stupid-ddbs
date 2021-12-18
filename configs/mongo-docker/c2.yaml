@@ -1,0 +1,7 @@
+sharding:
+  clusterRole: configsvr
+replication:
+  replSetName: configs
+net:
+  port: 27017
+  bindIp: 0.0.0.0

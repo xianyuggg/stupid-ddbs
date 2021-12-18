@@ -1,0 +1,141 @@
+version: "3"
+services:
+  shard1_master:
+    container_name:
+      shard1_master
+    image: mongo:latest
+    volumes:
+      - /Users/xianyu/Desktop/SourceCode/Database/stupid-ddbs/configs/mongo-docker:/home
+    command:
+      --config /home/s1m.yaml
+    networks:
+      ddbs_br:
+        ipv4_address: 192.168.1.2
+        aliases:
+          - s1m
+
+
+
+  shard1_slave:
+    container_name:
+      shard1_slave
+    image: mongo:latest
+    volumes:
+      - /Users/xianyu/Desktop/SourceCode/Database/stupid-ddbs/configs/mongo-docker:/home
+    command:
+      --config /home/s1s.yaml
+    networks:
+      ddbs_br:
+        ipv4_address: 192.168.1.3
+        aliases:
+          - s1s
+
+
+  shard2_master:
+    container_name:
+      shard2_master
+    image: mongo:latest
+    volumes:
+      - /Users/xianyu/Desktop/SourceCode/Database/stupid-ddbs/configs/mongo-docker:/home
+    command:
+      --config /home/s2m.yaml
+    networks:
+      ddbs_br:
+        ipv4_address: 192.168.1.4
+        aliases:
+          - s2m
+
+
+  shard2_slave:
+    container_name:
+      shard2_slave
+    image: mongo:latest
+    volumes:
+      - /Users/xianyu/Desktop/SourceCode/Database/stupid-ddbs/configs/mongo-docker:/home
+    command:
+      --config /home/s2s.yaml
+    networks:
+      ddbs_br:
+        ipv4_address: 192.168.1.5
+        aliases:
+          - s2s
+
+
+  config1:
+    container_name:
+      config1
+    image: mongo:latest
+    volumes:
+      - /Users/xianyu/Desktop/SourceCode/Database/stupid-ddbs/configs/mongo-docker:/home
+    command:
+      --config /home/c1.yaml
+    networks:
+      ddbs_br:
+        ipv4_address: 192.168.1.6
+        aliases:
+          - c1
+  config2:
+    container_name:
+      config2
+    image: mongo:latest
+    volumes:
+      - /Users/xianyu/Desktop/SourceCode/Database/stupid-ddbs/configs/mongo-docker:/home
+    command:
+      --config /home/c2.yaml
+    networks:
+      ddbs_br:
+        ipv4_address: 192.168.1.7
+        aliases:
+          - c2
+
+
+  mongos1:
+    container_name:
+      mongos1
+    image: ubuntu:latest
+    volumes:
+      - /Users/xianyu/Desktop/SourceCode/Database/stupid-ddbs/configs/mongo-docker:/home
+    ports:
+      - 27017-27019:27017-27019
+    command: tail -f /dev/null
+    networks:
+      ddbs_br:
+        ipv4_address: 192.168.1.8
+        aliases:
+          - s1
+
+
+
+  hdfs:
+    container_name:
+      hdfs
+    image: hdfs0:latest
+    environment:
+      - HDFS_NAMENODE_USER=root
+      - HDFS_DATANODE_USER=root
+      - HDFS_SECONDARYNAMENODE_USER=root
+    ports:
+      - 9870:9870
+      - 9864:9864
+    command: tail -f /dev/null
+    networks:
+      ddbs_br:
+        ipv4_address: 192.168.1.9
+        aliases:
+          - hdfs
+
+networks:
+  ddbs_br:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.168.1.0/24
+
+#  export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/go/bin
+#  export JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-amd64
+#  export HDFS_NAMENODE_USER=root
+#  export HDFS_DATANODE_USER=root
+#  export HDFS_SECONDARYNAMENODE_USER=root
+#  export HADOOP_HOME=/usr/local/hadoop
+#  export HADOOP_COMMON_LIB_NATIVE_DIR=$HADOOP_HOME/lib/native

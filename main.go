@@ -4,6 +4,17 @@ import "stupid-ddbs/cmd"
 
 func main() {
 
+	// time test
+	//begin := time.Date(2000, 1, 1, 0, 0, 0, 0, time.Local).Unix()
+	//end := time.Date(2004, 12, 31, 23, 59, 0, 0, time.Local).Unix()
+	//println(begin)
+	//println(end)
+	//println(1. * (begin - end)/1000000)
+	//
+	//println(time.Unix(0, 0).Format(time.RFC3339Nano))
+	//os.Exit(0)
+
+	//
 	cmd.Run()
 	//moniter.ShowHdfsPathStatus("/")
 	//moniter.PrintShards()

@@ -17,5 +17,4 @@ stupid-ddbs
 # vendor/
 dataset/
 .DS_Store
-configs
 output
