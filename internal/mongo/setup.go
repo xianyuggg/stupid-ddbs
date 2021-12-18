@@ -50,17 +50,24 @@ func ShardingSetup() {
 		return
 	}
 
+	prjDB, _ := mongoGetDatabase(DefaultDbName)
+	if err := prjDB.CreateCollection(context.TODO(), "beread", nil); err != nil {
+		log.Warning(err)
+	}
+	if err := prjDB.CreateCollection(context.TODO(), "popular", nil); err != nil {
+		log.Warning(err)
+	}
+
 	var cmd bson.D
 	cmd = bson.D{
 		{
 			"enableSharding", DefaultDbName,
 		},
 	}
-	if err := db.CreateCollection(context.TODO(), "beread", nil); err != nil {
-		log.Warning(err)
-	}
-	if err := db.CreateCollection(context.TODO(), "popular", nil); err != nil {
-		log.Warning(err)
+	if err := db.RunCommand(context.TODO(), cmd).Err(); err != nil {
+		log.Error(err.Error())
+		fmt.Println(err.Error())
+		return
 	}
 
 	cmd = bson.D{
@@ -116,7 +123,7 @@ func ShardingSetup() {
 
 	cmd = bson.D{
 		{"shardCollection", fmt.Sprintf("%v.%v", DefaultDbName, "popular")},
-		{"key", bson.M{"aid": 1}},
+		{"key", bson.M{"granularity": 1}},
 		//{"unique", true},
 		//{"numInitialChunks", 32},
 		{"collation",bson.M{"locale": "simple"}},

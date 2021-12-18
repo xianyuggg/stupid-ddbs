@@ -23,6 +23,8 @@ var CollationConfig = options.Collation {
 	Strength: 1,
 	NumericOrdering: true,
 }
+
+var DefaultTimeLayout = "2006-Jan-02"
 // https://docs.mongodb.com/manual/reference/collation/#std-label-collation-document-fields
 //{
 //locale: <string>,

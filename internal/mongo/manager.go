@@ -2,10 +2,10 @@ package mongo
 
 import (
 	"context"
-	"fmt"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"sort"
 	"strconv"
 	"stupid-ddbs/logutil"
 	"sync"
@@ -137,6 +137,18 @@ func (m* Manager) QueryData(collectionName string, andConditions []Cond) ([]inte
 
 		case "user":
 			var user UserDoc
+			if err = cursor.Decode(&user); err != nil {
+				log.Error(err)
+			}
+			result = append(result, user)
+		case "beread":
+			var user BereadDoc
+			if err = cursor.Decode(&user); err != nil {
+				log.Error(err)
+			}
+			result = append(result, user)
+		case "popular":
+			var user PopularDoc
 			if err = cursor.Decode(&user); err != nil {
 				log.Error(err)
 			}
@@ -298,28 +310,160 @@ func (m* Manager) ComputeBeRead(overwrite bool) error{
 	return nil
 }
 
+// A data structure to hold a key/value pair.
+type Pair struct {
+	Key   string
+	Value int
+}
 
-func (m* Manager) QueryPopularRank() error {
+// A slice of Pairs that implements sort.Interface to sort by Value.
+type PairList []Pair
+
+func (p PairList) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
+func (p PairList) Len() int           { return len(p) }
+func (p PairList) Less(i, j int) bool { return p[i].Value < p[j].Value }
+
+
+func (m* Manager) ComputePopular() error {
+	//id, timestamp, temporalGranularity, articleAidList
 	// Query the top-5 daily/weekly/monthly popular articles with articles details (text, image, and video if existing)
 	// (involving the join of Be-Read table and Article table)
 	bereadCollection := m.db.Collection("beread")
+	popularCollection := m.db.Collection("popular")
 	cursor, err := bereadCollection.Find(context.TODO(), bson.M{})
 
-	weekMap := make(map[int]int)
+	yearMap := make(map[time.Time]map[string]int)
+	weekMap := make(map[time.Time]map[string]int)
+	monthMap := make(map[time.Time]map[string]int)
+
+	// id time temporal granularity, articleAidList
 	for cursor.Next(context.TODO()) {
 		var beread BereadDoc
 		if err = cursor.Decode(&beread); err == nil {
 			tsp := beread.Timestamp
-			unixTime := time.Unix(int64(tsp), 0)
-			_, week := unixTime.ISOWeek()
-			weekMap[week] = 1
-			unixTime.Day()
+			t := time.Unix(int64(tsp), 0)
+
+			// yearly
+			yt := time.Date(t.Year(), 1, 1, 0, 0, 0, 0,  time.Local)
+			if _, ok := yearMap[yt]; !ok {
+				yearMap[yt] = make(map[string]int)
+			} else {
+				if _, ok := yearMap[yt]; !ok {
+					yearMap[yt][beread.Aid] = beread.ReadNum
+				} else {
+					yearMap[yt][beread.Aid] += beread.ReadNum
+				}
+			}
+			// monthly
+			mt := time.Date(t.Year(), t.Month(), 1, 0, 0, 0, 0,  time.Local)
+			if _, ok := monthMap[yt]; !ok {
+				monthMap[yt] = make(map[string]int)
+			} else {
+				if _, ok := monthMap[mt]; !ok {
+					monthMap[mt][beread.Aid] = beread.ReadNum
+				} else {
+					monthMap[mt][beread.Aid] += beread.ReadNum
+				}
+			}
+
+			// weekly
+			wt := t.AddDate(0, 0, -int(t.Weekday()))
+			if _, ok := weekMap[wt]; !ok {
+				weekMap[wt] = make(map[string]int)
+			} else {
+				if _, ok := weekMap[wt]; !ok {
+					weekMap[wt][beread.Aid] = beread.ReadNum
+				} else {
+					weekMap[wt][beread.Aid] += beread.ReadNum
+				}
+			}
+
 			//fmt.Println(unixTime.Format("2006-1-2"))
 		} else {
 			log.Error(err)
 			return err
 		}
 	}
-	fmt.Println(weekMap)
+
+	for k, v := range yearMap {
+		kvPairs := make(PairList, 0)
+		for aid, count := range v {
+			kvPairs = append(kvPairs, Pair{
+				Key:  aid ,
+				Value: count,
+			})
+		}
+		sort.Sort(kvPairs)
+		kvPairs = kvPairs[0:5]
+		tmpPopularDoc := PopularDoc{
+			Time:           k.Format(DefaultTimeLayout),
+			Granularity:    "year",
+			ArticleAidList: make([]string, 0),
+		}
+		for i, _ := range kvPairs {
+			tmpPopularDoc.ArticleAidList = append(tmpPopularDoc.ArticleAidList, kvPairs[i].Key)
+		}
+		if res, err := popularCollection.InsertOne(context.Background(), tmpPopularDoc); err != nil {
+			log.Error(err)
+			return err
+		} else {
+			log.Info("insert popular", res)
+		}
+	}
+
+	for k, v := range monthMap {
+		kvPairs := make(PairList, 0)
+		for aid, count := range v {
+			kvPairs = append(kvPairs, Pair{
+				Key:  aid ,
+				Value: count,
+			})
+		}
+		sort.Sort(kvPairs)
+		kvPairs = kvPairs[0:5]
+		tmpPopularDoc := PopularDoc{
+			Time:           k.Format(DefaultTimeLayout),
+			Granularity:    "month",
+			ArticleAidList: make([]string, 0),
+		}
+		for i, _ := range kvPairs {
+			tmpPopularDoc.ArticleAidList = append(tmpPopularDoc.ArticleAidList, kvPairs[i].Key)
+		}
+		if res, err := popularCollection.InsertOne(context.Background(), tmpPopularDoc); err != nil {
+			log.Error(err)
+			return err
+		} else {
+			log.Info("insert popular", res)
+		}
+	}
+
+	for k, v := range weekMap {
+		kvPairs := make(PairList, 0)
+		for aid, count := range v {
+			kvPairs = append(kvPairs, Pair{
+				Key:  aid ,
+				Value: count,
+			})
+		}
+		sort.Sort(kvPairs)
+		kvPairs = kvPairs[0:5]
+		tmpPopularDoc := PopularDoc{
+			Time:           k.Format(DefaultTimeLayout),
+			Granularity:    "week",
+			ArticleAidList: make([]string, 0),
+		}
+		for i, _ := range kvPairs {
+			tmpPopularDoc.ArticleAidList = append(tmpPopularDoc.ArticleAidList, kvPairs[i].Key)
+		}
+		if res, err := popularCollection.InsertOne(context.Background(), tmpPopularDoc); err != nil {
+			log.Error(err)
+			return err
+		} else {
+			log.Info("insert popular", res)
+		}
+	}
+
+
+
 	return nil
 }

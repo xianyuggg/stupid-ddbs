@@ -5,7 +5,9 @@ import (
 	"github.com/qeesung/image2ascii/convert"
 	"math"
 	"os"
+	"strconv"
 	"stupid-ddbs/internal/hdfs"
+	"time"
 )
 
 //type ArticleDoc struct {
@@ -51,6 +53,19 @@ import (
 //	ObtainedCredits string `json:"obtainedCredits"`
 //}
 
+// tsp is int64 represent in string
+func formatTimestamp(tsp string) string{
+	val, _ := strconv.Atoi(tsp)
+	return time.Unix(int64(val), 0).Format(DefaultTimeLayout)
+}
+func formatStringSlice(strings []string) string {
+	ret := ""
+	for  _, str := range strings {
+		ret += str + " "
+	}
+	return ret
+}
+
 func CollectionPrinter(collectionName string, res []interface{}, detailDisplay bool) {
 	table := tablewriter.NewWriter(os.Stdout)
 	if collectionName == "article" {
@@ -63,7 +78,7 @@ func CollectionPrinter(collectionName string, res []interface{}, detailDisplay b
 			tmp := v.(ArticleDoc)
 			row := make([]string, 0)
 			row = append(row, tmp.Id)
-			row = append(row, tmp.Timestamp)
+			row = append(row, formatTimestamp(tmp.Timestamp))
 			row = append(row, tmp.Aid)
 			row = append(row, tmp.Title)
 			row = append(row, tmp.Category)
@@ -113,7 +128,7 @@ func CollectionPrinter(collectionName string, res []interface{}, detailDisplay b
 			tmp := v.(ReadDoc)
 			row := make([]string, 0)
 			row = append(row, tmp.Id)
-			row = append(row, tmp.Timestamp)
+			row = append(row, formatTimestamp(tmp.Timestamp))
 			row = append(row, tmp.Uid)
 			row = append(row, tmp.Aid)
 			row = append(row, tmp.ReadTimeLength)
@@ -121,6 +136,57 @@ func CollectionPrinter(collectionName string, res []interface{}, detailDisplay b
 			row = append(row, tmp.CommentOrNot)
 			row = append(row, tmp.ShareOrNot)
 			row = append(row, tmp.CommentDetail)
+			table.Append(row)
+		}
+		table.Render()
+	} else if collectionName == "user" {
+		table.SetHeader([]string{"timestamp", "id", "uid", "name", "gender", "email", "phone", "dept", "grade", "language", "region", "role", "preferTags", "obtainedCredits"})
+		for _, v := range res {
+			tmp := v.(UserDoc)
+			row := make([]string, 0)
+			row = append(row, formatTimestamp(tmp.Timestamp))
+			row = append(row, tmp.Id)
+			row = append(row, tmp.Uid)
+			row = append(row, tmp.Name)
+			row = append(row, tmp.Gender)
+			row = append(row, tmp.Email)
+			row = append(row, tmp.Phone)
+			row = append(row, tmp.Dept)
+			row = append(row, tmp.Grade)
+			row = append(row, tmp.Language)
+			row = append(row, tmp.Region)
+			row = append(row, tmp.Role)
+			row = append(row, tmp.PreferTags)
+			row = append(row, tmp.ObtainedCredits)
+			table.Append(row)
+		}
+		table.Render()
+	} else if collectionName == "Beread" {
+		table.SetHeader([]string{"timestamp", "aid", "readNum", "readUidList", "commentNum", "commentUidList", "agreeNum", "agreeUidList", "shareNum", "shareUidList"})
+		for _, v := range res {
+			tmp := v.(BereadDoc)
+			row := make([]string, 0)
+			row = append(row, formatTimestamp(strconv.Itoa(tmp.Timestamp)))
+			row = append(row, tmp.Aid)
+			row = append(row, strconv.Itoa(tmp.ReadNum))
+			row = append(row, formatStringSlice(tmp.ReadUidList))
+			row = append(row, strconv.Itoa(tmp.CommentNum))
+			row = append(row, formatStringSlice(tmp.CommentUidList))
+			row = append(row, strconv.Itoa(tmp.AgreeNum))
+			row = append(row, formatStringSlice(tmp.AgreeUidList))
+			row = append(row, strconv.Itoa(tmp.ShareNum))
+			row = append(row, formatStringSlice(tmp.ShareUidList))
+			table.Append(row)
+		}
+		table.Render()
+	} else if collectionName == "Popular" {
+		table.SetHeader([]string{"time", "granularity", "article_aids"})
+		for _, v := range res {
+			tmp := v.(PopularDoc)
+			row := make([]string, 0)
+			row = append(row, tmp.Time)
+			row = append(row, tmp.Granularity)
+			row = append(row, formatStringSlice(tmp.ArticleAidList))
 			table.Append(row)
 		}
 		table.Render()

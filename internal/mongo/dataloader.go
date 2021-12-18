@@ -68,6 +68,13 @@ type BereadDoc struct {
 	ShareUidList	[]string `bson:"shareUidList,omitempty"`
 }
 
+//id, timestamp, temporalGranularity, articleAidList
+type PopularDoc struct {
+	Time	string	`bson:"time,omitempty"`
+	Granularity	string	`bson:"granularity,omitempty"`
+	ArticleAidList	[]string	`bson:"articleAidList,omitempty"`
+}
+
 
 
 func loadCollectionFromLocal(target string) ([]interface{}, error){

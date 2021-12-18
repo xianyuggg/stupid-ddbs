@@ -34,7 +34,7 @@ func main() {
 	//})
 	//mongo.ResultPrinter("article", res, false)
 	//_ = manager.ComputeBeRead(false)
-	//_ = manager.QueryPopularRank()
+	//_ = manager.ComputePopular()
 	//mongo.ShardingSetup()
 
 

@@ -59,7 +59,20 @@ func LoadData(target string) {
 			println(err)
 		}
 	case "popular":
-		panic("not implemented")
+		if err := m.ComputePopular(); err != nil {
+			println(err)
+		}
+	case "all":
+		ShardingSetup()
+		if err := m.LoadAllData(); err != nil {
+			println(err)
+		}
+		if err := m.ComputeBeRead(false); err != nil {
+			println(err)
+		}
+		if err := m.ComputePopular(); err != nil {
+			println(err)
+		}
 	default:
 		println("target not valid")
 	}
