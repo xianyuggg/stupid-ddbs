@@ -356,8 +356,8 @@ func (m* Manager) ComputePopular() error {
 			}
 			// monthly
 			mt := time.Date(t.Year(), t.Month(), 1, 0, 0, 0, 0,  time.Local)
-			if _, ok := monthMap[yt]; !ok {
-				monthMap[yt] = make(map[string]int)
+			if _, ok := monthMap[mt]; !ok {
+				monthMap[mt] = make(map[string]int)
 			} else {
 				if _, ok := monthMap[mt]; !ok {
 					monthMap[mt][beread.Aid] = beread.ReadNum
@@ -368,6 +368,7 @@ func (m* Manager) ComputePopular() error {
 
 			// weekly
 			wt := t.AddDate(0, 0, -int(t.Weekday()))
+			wt = time.Date(wt.Year(), wt.Month(), wt.Day(), 0, 0, 0, 0, time.Local)
 			if _, ok := weekMap[wt]; !ok {
 				weekMap[wt] = make(map[string]int)
 			} else {
@@ -436,7 +437,6 @@ func (m* Manager) ComputePopular() error {
 			log.Info("insert popular", res)
 		}
 	}
-
 	for k, v := range weekMap {
 		kvPairs := make(PairList, 0)
 		for aid, count := range v {

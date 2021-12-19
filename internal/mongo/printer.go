@@ -161,7 +161,7 @@ func CollectionPrinter(collectionName string, res []interface{}, detailDisplay b
 			table.Append(row)
 		}
 		table.Render()
-	} else if collectionName == "Beread" {
+	} else if collectionName == "beread" {
 		table.SetHeader([]string{"timestamp", "aid", "readNum", "readUidList", "commentNum", "commentUidList", "agreeNum", "agreeUidList", "shareNum", "shareUidList"})
 		for _, v := range res {
 			tmp := v.(BereadDoc)
@@ -179,7 +179,7 @@ func CollectionPrinter(collectionName string, res []interface{}, detailDisplay b
 			table.Append(row)
 		}
 		table.Render()
-	} else if collectionName == "Popular" {
+	} else if collectionName == "popular" {
 		table.SetHeader([]string{"time", "granularity", "article_aids"})
 		for _, v := range res {
 			tmp := v.(PopularDoc)
