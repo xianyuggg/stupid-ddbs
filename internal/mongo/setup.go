@@ -86,7 +86,7 @@ func ShardingSetup() {
 
 	cmd = bson.D{
 		{"shardCollection", fmt.Sprintf("%v.%v", DefaultDbName, "read")},
-		{"key", bson.M{"uid": 1}},
+		{"key", bson.M{"_id": 1}},
 		//{"unique", true},
 		//{"numInitialChunks", 32},
 		{"collation",bson.M{"locale": "simple"}},
@@ -101,7 +101,7 @@ func ShardingSetup() {
 
 	cmd = bson.D{
 		{"shardCollection", fmt.Sprintf("%v.%v", DefaultDbName, "user")},
-		{"key", bson.M{"uid": 1}},
+		{"key", bson.M{"region": 1}},
 		//{"unique", true},
 		//{"numInitialChunks", 32},
 		{"collation",bson.M{"locale": "simple"}},
@@ -121,6 +121,12 @@ func ShardingSetup() {
 		{"collation",bson.M{"locale": "simple"}},
 	}
 
+	if err := db.RunCommand(context.TODO(), cmd).Err(); err != nil{
+		log.Error(err.Error())
+		fmt.Println(err.Error())
+		return
+	}
+
 	cmd = bson.D{
 		{"shardCollection", fmt.Sprintf("%v.%v", DefaultDbName, "popular")},
 		{"key", bson.M{"granularity": 1}},
@@ -129,11 +135,11 @@ func ShardingSetup() {
 		{"collation",bson.M{"locale": "simple"}},
 	}
 
-	if err := db.RunCommand(context.TODO(), cmd).Err(); err != nil{
-		log.Error(err.Error())
-		fmt.Println(err.Error())
-		return
-	}
+	//if err := db.RunCommand(context.TODO(), cmd).Err(); err != nil{
+	//	log.Error(err.Error())
+	//	fmt.Println(err.Error())
+	//	return
+	//}
 
 
 	println("set up sharding finished")

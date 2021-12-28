@@ -1,11 +1,14 @@
 package cmd
 
 import (
+	"fmt"
 	"os"
 	"strings"
 	"stupid-ddbs/internal/hdfs"
 	"stupid-ddbs/internal/mongo"
 	"stupid-ddbs/internal/moniter"
+	log "stupid-ddbs/logutil"
+	"time"
 )
 
 var livePrefixState struct {
@@ -41,6 +44,12 @@ func changeLivePrefix() (string, bool) {
 var displayDetails bool
 
 func solve(query string) {
+	start := time.Now()
+	defer func() {
+		elapsed := time.Since(start)
+		fmt.Println("exec time ", elapsed)
+	}()
+
 	if len(query) == 0 {
 		return
 	}
@@ -69,7 +78,7 @@ func solve(query string) {
 		if len(commands) != 2 {
 			println("drop all/beread/popular/...")
 		} else {
-			mongo.LoadData(commands[1])
+			mongo.DropCollection(commands[1])
 		}
 	case "show":
 		switch commands[1] {
@@ -120,6 +129,15 @@ func solve(query string) {
 			if commands[2] == "true" {
 				mongo.ShardingSetup()
 			}
+		case "logging":
+			if commands[2] != "true" && commands[2] != "false" {
+				println("value not valid (true/false)")
+			}
+			if commands[2] == "true" {
+				log.SetLevel(1)
+			} else {
+				log.SetLevel(0)
+			}
 		default:
 			println("attribute do not exist")
 		}
@@ -160,4 +178,5 @@ func solve(query string) {
 	default:
 		println("unknown command")
 	}
+
 }

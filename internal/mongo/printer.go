@@ -1,6 +1,7 @@
 package mongo
 
 import (
+	"fmt"
 	"github.com/olekukonko/tablewriter"
 	"github.com/qeesung/image2ascii/convert"
 	"math"
@@ -70,9 +71,9 @@ func CollectionPrinter(collectionName string, res []interface{}, detailDisplay b
 	table := tablewriter.NewWriter(os.Stdout)
 	if collectionName == "article" {
 
-		headers := []string{"id", "timestamp", "aid", "title", "category", "abstract", "articleTags", "authors", "language", "text", "image", "video", "imageShow", "content"}
+		headers := []string{"id", "timestamp", "aid", "title", "category", "abstract", "articleTags", "authors", "language", "text", "image", "video"}
 		table.SetHeader(headers)
-		//images := make([]string, 0)
+		images := make([]string, 0)
 		contents := make([]string, 0)
 		for _, v := range res {
 			tmp := v.(ArticleDoc)
@@ -93,35 +94,50 @@ func CollectionPrinter(collectionName string, res []interface{}, detailDisplay b
 			// show image
 			if detailDisplay {
 				convertOptions := convert.DefaultOptions
-				convertOptions.FixedWidth = 20
-				convertOptions.FixedHeight = 20
+				convertOptions.FixedWidth = 30
+				convertOptions.FixedHeight = 30
 				convertOptions.Ratio = 1
 				convertOptions.Ratio = 1
 				convertOptions.FitScreen = false
 				image := hdfs.GetArticleImages(tmp.Aid)
-				converter := convert.NewImageConverter()
-				displayString := converter.Image2ASCIIString(image[0], &convertOptions)
-				row = append(row, displayString)
-
-				content := hdfs.GetArticleContent(tmp.Aid)
-				content = content[0: int(math.Min(300, float64(len(content))))]
-				contentProcess := ""
-				for i := 0; i < len(content); i+=20 {
-					contentProcess += content[i:i+20] + "\n"
+				if len(image) > 0 {
+					converter := convert.NewImageConverter()
+					displayString := converter.Image2ASCIIString(image[0], &convertOptions)
+					//row = append(row, displayString)
+					//row = append(row, "")
+					images = append(images, displayString)
+				} else {
+					//row = append(row, "")
 				}
-				row = append(row, contentProcess)
-				contents = append(contents, content)
+				content := hdfs.GetArticleContent(tmp.Aid)
+				content = content[0: int(math.Min(500, float64(len(content))))]
+				contentProcess := ""
+				for i := 0; i < len(content); i+=100 {
+					if (i + 100) >= len(content) {
+						contentProcess += content[i:len(content)] + "\n"
+					} else {
+						contentProcess += content[i:i+100] + "\n"
+					}
+				}
+				//row = append(row, contentProcess)
+				contents = append(contents, contentProcess)
 			} else {
-				row = append(row, "")
-				row = append(row, "")
+				//row = append(row, "")
+				//row = append(row, "")
 			}
-			//images = append(images, displayString)
+
 			table.Append(row)
 		}
 		table.Render()
-		//for _, img := range(images) {
-		//	fmt.Println(img)
-		//}
+		if len(images) == 1 && len(contents) == 1{
+			for _, img := range(images) {
+				fmt.Println(img)
+			}
+			for _, img := range(contents) {
+				fmt.Println(img)
+			}
+		}
+
 	} else if collectionName == "read" {
 		table.SetHeader([]string{"timestamp", "id", "uid", "aid", "readTimeLength", "agreeOrNot", "commentOrNot", "shareOrNot", "commentDetail"})
 		for _, v := range res {

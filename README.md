@@ -1,9 +1,6 @@
 # stupid-ddbs
+Course project for DDBS (graduate course), which utilize MongoDB and HDFS for structured and unstructured data to build a distributed database system. Use Golang to interact with the cluster.
+Docker configuration files can be found under `configs/`
 
 ## Environment Setup
-
-+ Golang Installation 
-  + https://cloud.tencent.com/developer/article/1623121
-  + `go build`
-+ Docker
-  + docker-compose.yaml under configs/
+Please refer to `SYSTEM MANUAL.md` for details

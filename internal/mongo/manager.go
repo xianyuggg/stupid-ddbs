@@ -446,7 +446,9 @@ func (m* Manager) ComputePopular() error {
 			})
 		}
 		sort.Sort(kvPairs)
-		kvPairs = kvPairs[0:5]
+		if len(kvPairs) > 5 {
+			kvPairs = kvPairs[0:5]
+		}
 		tmpPopularDoc := PopularDoc{
 			Time:           k.Format(DefaultTimeLayout),
 			Granularity:    "week",

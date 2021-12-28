@@ -15,6 +15,5 @@ stupid-ddbs
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
-dataset/
 .DS_Store
 output

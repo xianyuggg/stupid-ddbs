@@ -64,12 +64,14 @@ var multiStepSuggests = map[string][]prompt.Suggest{
 	"set": {
 		{Text: "display_details"},
 		{Text: "sharding"},
+		{Text: "logging"},
 	},
 	"query": {
 		{Text: "article"},
 		{Text: "user"},
 		{Text: "read"},
 		{Text: "beread"},
+		{Text: "popular"},
 	},
 }
 

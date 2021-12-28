@@ -30,7 +30,7 @@ func LoadData(target string) {
 	m := GetManagerInstance()
 	//collections := GetCollections()
 	//collMap := make(map[string]int)
-	//for _, coll := range collections {
+	//for _,1 coll := range collections {
 	//	collMap[coll] = 1
 	//}
 	//if _, ok := collMap[target]; ok {
